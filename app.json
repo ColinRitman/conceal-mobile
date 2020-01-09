@@ -3,12 +3,12 @@
     "name": "Conceal Mobile",
     "slug": "conceal_mobile",
     "privacy": "public",
-    "sdkVersion": "33.0.0",
+    "sdkVersion": "36.0.0",
     "platforms": [
       "ios",
       "android"
     ],
-    "version": "1.0.5",
+    "version": "1.2.3",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "splash": {
@@ -17,17 +17,19 @@
       "backgroundColor": "#232323"
     },
     "updates": {
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "enabled": false
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ConcealNetwork.ConcealMobile"
     },
     "android": {
       "package": "com.ConcealNetwork.ConcealMobile",
-      "versionCode": 15,
+      "versionCode": 22,
       "permissions": [
         "CAMERA"
       ]

@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { AsyncStorage, Dimensions } from 'react-native';
-import { AppLoading, Font, Icon } from 'expo';
+import { YellowBox } from 'react-native';
+import * as Font from 'expo-font';
+import { AppLoading } from 'expo';
+import { Icon } from '@expo/vector-icons';
 import { Platform, StatusBar, View } from 'react-native';
 import { createAppContainer } from 'react-navigation';
+import FlashMessage from "react-native-flash-message";
 import ConcealLoader from './components/ccxLoader';
 import EStyleSheet from 'react-native-extended-stylesheet';
 
@@ -18,6 +22,9 @@ if (Platform.OS === 'android') {
   require('intl/locale-data/jsonp/en-GB');
 }
 
+// supress the timer warnings
+YellowBox.ignoreWarnings(['Setting a timer']);
+
 // build only once
 EStyleSheet.build({
   $rem: Dimensions.get('window').width / 360
@@ -32,7 +39,6 @@ const App = props => {
   const loadResourcesAsync = async () => {
     return Promise.all([
       Font.loadAsync({
-        ...Icon.Ionicons.font,
         'space-mono': require('./assets/fonts/SpaceMono-Regular.ttf'),
         'Lato': require('./assets/fonts/Lato/Lato-Regular.ttf'),
         'Roboto': require('./assets/fonts/Roboto/Roboto-Regular.ttf'),
@@ -56,7 +62,8 @@ const App = props => {
         onError={handleLoadingError}
         onFinish={handleFinishLoading}
       />
-      : <AppContextProvider>
+      :
+      < AppContextProvider >
         <ConcealLoader />
         <View style={AppStyles.appContainer}>
           {Platform.OS === 'ios' && <StatusBar barStyle="light-content" />}
@@ -65,8 +72,9 @@ const App = props => {
               NavigationService.setTopLevelNavigator(navigatorRef);
             }}
           />
+          <FlashMessage position="top" />
         </View>
-      </AppContextProvider>
+      </AppContextProvider >
   )
 };
 

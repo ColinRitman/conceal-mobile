@@ -1,6 +1,7 @@
 import React, { useContext, useEffect } from 'react';
 import { StatusBar, View, Text, StyleSheet } from 'react-native';
 import { AppContext } from '../components/ContextProvider';
+import EStyleSheet from 'react-native-extended-stylesheet';
 import AuthHelper from '../helpers/AuthHelper';
 import NavigationService from '../helpers/NavigationService';
 import { logger } from '../helpers/Logger';
@@ -13,11 +14,10 @@ const AuthLoading = () => {
 
   useEffect(() => {
     logger.log('CHECKING AUTH...');
-    Auth.loggedIn().then(loggedIn =>
-      loggedIn
-        ? (state.layout.userLoaded && state.layout.walletsLoaded) && NavigationService.navigate('App')
-        : NavigationService.navigate('Auth')
-    );
+    let loggedIn = Auth.loggedIn();
+    loggedIn
+      ? (state.layout.userLoaded && state.layout.walletsLoaded) && NavigationService.navigate('App')
+      : NavigationService.navigate('Auth')
   }, []);
 
   return (
@@ -33,13 +33,13 @@ const ForwardRef = React.forwardRef((props, ref) => (
   </AppContext.Consumer>
 ));
 
-const styles = StyleSheet.create({
+const styles = EStyleSheet.create({
   textWrapper: {
     alignItems: 'center',
     justifyContent: 'center'
   },
   loadingText: {
-    fontSize: 18,
+    fontSize: '18rem',
     color: "#FFFFFF"
   }
 });

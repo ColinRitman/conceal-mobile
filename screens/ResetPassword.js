@@ -4,6 +4,7 @@ import ConcealButton from '../components/ccxButton';
 
 import { AppContext } from '../components/ContextProvider';
 import { useFormInput, useFormValidation } from '../helpers/hooks';
+import { getAspectRatio } from '../helpers/utils';
 import { AppColors } from '../constants/Colors';
 import AppStyles from '../components/Style';
 import {
@@ -12,16 +13,18 @@ import {
   Keyboard,
   TextInput,
   StyleSheet,
+  ScrollView,
   TouchableOpacity,
   TouchableWithoutFeedback
 } from 'react-native';
 
 
 const ResetPassword = props => {
-  const { state } = useContext(AppContext);
-  const { hidePanel, resetPassword } = props;
+  const { actions, state } = useContext(AppContext);
   const { layout } = state;
   const { formSubmitted, message } = layout;
+  const { resetPassword } = actions;
+  const { hidePanel } = props;
 
   const { value: email, bind: bindEmail } = useFormInput(global.username);
 
@@ -33,10 +36,10 @@ const ResetPassword = props => {
   return (
     <View style={[AppStyles.viewContainer]}>
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-        <View style={AppStyles.loginView}>
+        <ScrollView contentContainerStyle={AppStyles.loginView}>
           <Image
             source={require('../assets/images/icon.png')}
-            style={{ width: 150, height: 150 }}
+            style={{ width: 150 * getAspectRatio(), height: 150 * getAspectRatio() }}
           />
           <Text style={AppStyles.title}>RESET PASSWORD</Text>
 
@@ -56,7 +59,10 @@ const ResetPassword = props => {
 
           <View style={styles.footer}>
             <ConcealButton
-              onPress={() => resetPassword({ email, id: 'resetPasswordForm' })}
+              onPress={() => {
+                resetPassword({ email, id: 'resetPasswordForm' });
+                hidePanel();
+              }}
               text='Send E-mail'
               accessibilityLabel="Send E-mail Button"
               disabled={formSubmitted || !formValid}
@@ -71,7 +77,7 @@ const ResetPassword = props => {
               disabled={formSubmitted}
             />
           </View>
-        </View>
+        </ScrollView>
       </TouchableWithoutFeedback>
     </View>
   )

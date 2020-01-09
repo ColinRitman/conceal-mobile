@@ -18,7 +18,8 @@ const useAppState = () => {
       redirectToReferrer: false,
       sendTxResponse: null,
       userLoaded: false,
-      walletsLoaded: false
+      walletsLoaded: false,
+      messagesLoaded: false,
     },
     markets: {
       stex: {
@@ -57,12 +58,19 @@ const useAppState = () => {
       twoFACode: '',
       twoFAEnabled: null,
       updateWalletsInterval: 60,  // seconds
+      updateMessagesInterval: 60,  // seconds
     },
     wallets: {},
     appData: {
       sendScreen: {
-        addrListVisible: false,
         sendConfirmVisible: false,
+        securePasswordEntry: true
+      },
+      messages: {
+        filterText: null,
+        filterState: 0
+      },
+      sendMessage: {
         securePasswordEntry: true
       },
       scanCode: {
@@ -76,8 +84,20 @@ const useAppState = () => {
         entryId: null,
         headerText: null
       },
+      addressBook: {
+        filterText: null
+      },
+      searchAddress: {
+        addrListVisible: false,
+        filterText: null
+      },
       login: {
-        userName: ''
+        userName: '',
+        signUpVisible: false,
+        resetPasswordVisible: false
+      },
+      settings: {
+        patternVisible: false
       },
       common: {
         selectedWallet: null
@@ -119,6 +139,18 @@ const useAppState = () => {
             ...state.user,
             ...action.user,
           },
+        };
+        break;
+      case 'MESSAGES_LOADED':
+        result = {
+          ...state,
+          layout: {
+            ...state.layout,
+            messagesLoaded: true,
+          },
+          messages: {
+            ...action.messages
+          }
         };
         break;
       case '2FA_CHECK':
@@ -291,6 +323,11 @@ const useAppState = () => {
           ...state
         };
         break;
+      case 'MESSAGE_SENT':
+        result = {
+          ...state
+        };
+        break;
       case 'APP_UPDATED':
         result = {
           ...state,
@@ -330,6 +367,7 @@ const useAppState = () => {
             userLoaded: false,
             walletsLoaded: false,
             loginFinished: false,
+            messagesLoaded: false,
           },
           user: {
             ...state.user,

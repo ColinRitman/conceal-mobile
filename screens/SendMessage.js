@@ -12,71 +12,24 @@ import { sprintf } from 'sprintf-js';
 import {
   maskAddress,
   formatOptions,
-  getAspectRatio,
-  format0Decimals,
-  format2Decimals,
-  format4Decimals,
-  format6Decimals,
-  format8Decimals
+  getAspectRatio
 } from '../helpers/utils';
 import {
   Text,
   View,
   FlatList,
+  TextInput,
   Clipboard,
   StyleSheet,
   ScrollView,
   TouchableOpacity
 } from "react-native";
 
-const SendScreen = () => {
+const SendMessage = () => {
   const { state, actions } = useContext(AppContext);
   const { setAppData } = actions;
   const { user, wallets, appData } = state;
   const currWallet = wallets[appData.common.selectedWallet];
-
-  const sendSummaryList = [];
-
-  if (state.appData.sendScreen.toLabel) {
-    sendSummaryList.push({
-      value: state.appData.sendScreen.toLabel,
-      title: 'Label',
-      icon: 'md-eye'
-    });
-  }
-
-  if (state.appData.sendScreen.toAddress) {
-    sendSummaryList.push({
-      value: maskAddress(state.appData.sendScreen.toAddress),
-      title: 'Address',
-      icon: 'md-mail'
-    });
-  }
-
-  if (state.appData.sendScreen.toPaymendId) {
-    sendSummaryList.push({
-      value: maskAddress(state.appData.sendScreen.toPaymendId),
-      title: 'Payment ID',
-      icon: 'md-key'
-    });
-  }
-
-  if (state.appData.sendScreen.toAmount) {
-    let totalAmount = parseFloat(state.appData.sendScreen.toAmount);
-    totalAmount = totalAmount + 0.0001;
-
-    sendSummaryList.push({
-      value: sprintf('%s CCX', totalAmount.toLocaleString(undefined, format6Decimals)),
-      title: 'Total Amount',
-      icon: 'md-cash'
-    });
-
-    sendSummaryList.push({
-      value: '0.0001 CCX',
-      title: 'Transaction Fee',
-      icon: 'md-cash'
-    });
-  }
 
   onScanAddressQRCode = () => {
     setAppData({
@@ -85,44 +38,18 @@ const SendScreen = () => {
       }
     });
 
-    NavigationService.navigate('Scanner', { path: ["sendScreen", "toAddress"] });
+    NavigationService.navigate('Scanner', { path: ["sendMessage", "toAddress"] });
   }
 
-  // key extractor for the list
-  keyExtractor = (item, index) => index.toString();
-
-  renderItem = ({ item }) => (
-    <ListItem
-      title={item.value}
-      subtitle={item.title}
-      titleStyle={styles.summaryText}
-      subtitleStyle={styles.summaryLabel}
-      containerStyle={styles.summaryItem}
-      leftIcon={<Icon
-        name={item.icon}
-        type='ionicon'
-        color='white'
-        size={32 * getAspectRatio()}
-      />}
-    />
-  );
-
   isFormValid = () => {
-    if (state.appData.sendScreen.toAddress && state.appData.sendScreen.toAmount) {
-      var amountAsFloat = parseFloat(state.appData.sendScreen.toAmount);
-      return ((amountAsFloat > 0) && (amountAsFloat <= (parseFloat(currWallet.balance) - 0.0001)));
-    } else {
-      return false;
-    }
+    return (state.appData.sendMessage.toAddress && state.appData.sendMessage.message);
   }
 
   clearSend = () => {
     setAppData({
-      sendScreen: {
-        toAmount: '',
+      sendMessage: {
         toAddress: '',
-        toPaymendId: '',
-        toLabel: ''
+        message: ''
       }
     });
   }
@@ -130,30 +57,16 @@ const SendScreen = () => {
   readFromClipboard = async () => {
     const clipboardContent = await Clipboard.getString();
     setAppData({
-      sendScreen: {
-        toAddress: clipboardContent,
-        toPaymendId: '',
-        toLabel: ''
+      sendMessage: {
+        toAddress: clipboardContent
       }
     });
   };
 
-  getAmountError = () => {
-    var amountAsFloat = parseFloat(state.appData.sendScreen.toAmount || 0);
-    if ((amountAsFloat <= 0) && (state.appData.sendScreen.toAmount)) {
-      return "Amount must be greater then 0"
-    } else if (amountAsFloat > (parseFloat(currWallet.balance) - 0.0001)) {
-      return "The amount exceeds wallet balance"
-    } else {
-      return "";
-    }
-  }
-
   setAddress = (label, address, paymentID, entryID) => {
     setAppData({
-      sendScreen: {
-        toAddress: address,
-        toPaymendId: paymentID
+      sendMessage: {
+        toAddress: address
       }
     });
   }
@@ -170,7 +83,7 @@ const SendScreen = () => {
           color='white'
           size={32 * getAspectRatio()}
         />}
-        centerComponent={{ text: 'Send CCX', style: AppStyles.appHeaderText }}
+        centerComponent={{ text: 'Send Message', style: AppStyles.appHeaderText }}
         rightComponent={<Icon
           onPress={() => this.clearSend()}
           name='md-trash'
@@ -180,50 +93,12 @@ const SendScreen = () => {
         />}
       />
       <ScrollView contentContainerStyle={styles.walletWrapper}>
-        <View style={styles.fromWrapper}>
-          <Text style={styles.fromAddress}>{maskAddress(currWallet.addr)}</Text>
-          <Text style={styles.fromBalance}>{currWallet.balance.toLocaleString(undefined, format4Decimals)} CCX</Text>
-          {currWallet.locked
-            ? (<View style={styles.lockedWrapper}>
-              <Icon
-                containerStyle={styles.lockedIcon}
-                name='md-lock'
-                type='ionicon'
-                color='#FF0000'
-                size={16 * getAspectRatio()}
-              />
-              <Text style={currWallet.locked ? [styles.worthBTC, styles.lockedText] : styles.worthBTC}>
-                {sprintf('%s CCX', currWallet.locked.toLocaleString(undefined, format4Decimals))}
-              </Text>
-            </View>)
-            : null}
-        </View>
-
-        <ConcealTextInput
-          label={this.getAmountError()}
-          keyboardType='numeric'
-          placeholder='Select amount to send...'
-          containerStyle={styles.sendInput}
-          value={state.appData.sendScreen.toAmount}
-          onChangeText={(text) => {
-            setAppData({ sendScreen: { toAmount: text } });
-          }}
-          rightIcon={
-            <Icon
-              onPress={() => setAppData({ sendScreen: { toAmount: (parseFloat(currWallet.balance) - 0.0001).toLocaleString(undefined, format8Decimals) } })}
-              name='md-add'
-              type='ionicon'
-              color='white'
-              size={32 * getAspectRatio()}
-            />
-          }
-        />
         <TouchableOpacity onPress={() => setAppData({ searchAddress: { addrListVisible: true } })}>
           <ConcealTextInput
             editable={false}
             placeholder='Select recipient address...'
             containerStyle={styles.sendInput}
-            value={state.appData.sendScreen.toLabel ? state.appData.sendScreen.toLabel : maskAddress(state.appData.sendScreen.toAddress)}
+            value={state.appData.sendMessage.toLabel ? state.appData.sendMessage.toLabel : maskAddress(state.appData.sendMessage.toAddress)}
             rightIcon={
               <Icon
                 onPress={() => {
@@ -246,15 +121,28 @@ const SendScreen = () => {
             }
           />
         </TouchableOpacity>
-        <FlatList
-          data={sendSummaryList}
-          style={styles.summaryList}
-          renderItem={this.renderItem}
-          keyExtractor={this.keyExtractor}
-        />
+        <View style={styles.messageWrapper}>
+          <TextInput
+            multiline
+            maxLength={280}
+            numberOfLines={4}
+            style={styles.messageText}
+            placeholder="Write your message here..."
+            placeholderTextColor={AppColors.placeholderTextColor}
+            onChangeText={text => {
+              setAppData({
+                sendMessage: {
+                  message: text
+                }
+              });
+            }}
+            value={state.appData.sendMessage.message}
+          />
+        </View>
+        <Text style={styles.messageCharsLeft}>{state.appData.sendMessage.message ? 280 - state.appData.sendMessage.message.length : 280} chars of 280 left</Text>
       </ScrollView>
       <SearchAddress
-        selectAddress={(item) => setAppData({ searchAddress: { addrListVisible: false }, sendScreen: { toAddress: item.address, toPaymendId: item.paymentID, toLabel: item.label } })}
+        selectAddress={(item) => setAppData({ searchAddress: { addrListVisible: false }, sendMessage: { toAddress: item.address, toLabel: item.label } })}
         closeOverlay={() => setAppData({ searchAddress: { addrListVisible: false } })}
         addressData={user.addressBook}
         currWallet={currWallet}
@@ -263,7 +151,7 @@ const SendScreen = () => {
         <ConcealButton
           style={[styles.footerBtn, styles.footerBtnLeft]}
           disabled={!this.isFormValid()}
-          onPress={() => NavigationService.navigate('SendConfirm')}
+          onPress={() => NavigationService.navigate('SendMessageConfirm')}
           text="SEND"
         />
         <ConcealButton
@@ -287,11 +175,6 @@ const styles = EStyleSheet.create({
   sendInput: {
     marginTop: '10rem',
     marginBottom: '20rem'
-  },
-  fromAddress: {
-    fontSize: '18rem',
-    color: "#FFA500",
-    textAlign: 'center'
   },
   toAddress: {
     color: "#FFFFFF",
@@ -333,21 +216,6 @@ const styles = EStyleSheet.create({
   sendSummaryWrapper: {
     margin: '10rem',
     marginTop: '5rem'
-  },
-  overlayWrapper: {
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    position: 'absolute'
-  },
-  addressWrapper: {
-    top: '10rem',
-    left: '10rem',
-    right: '10rem',
-    bottom: '80rem',
-    borderRadius: '10rem',
-    position: 'absolute'
   },
   footer: {
     bottom: '10rem',
@@ -402,9 +270,22 @@ const styles = EStyleSheet.create({
   },
   lockedText: {
     color: '#FF0000'
+  },
+  messageWrapper: {
+    borderBottomColor: 'rgb(55, 55, 55)',
+    borderBottomWidth: 1,
+    margin: '10rem'
+  },
+  messageText: {
+    fontSize: '18rem',
+    marginBottom: '10rem',
+    color: AppColors.concealTextColor,
+  },
+  messageCharsLeft: {
+    margin: '10rem',
+    fontSize: '16rem',
+    color: AppColors.concealOrange,
   }
-
 });
 
-
-export default SendScreen;
+export default SendMessage;

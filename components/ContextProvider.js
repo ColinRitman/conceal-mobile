@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 
 import useAppState from './useAppState';
 import NavigationService from '../helpers/NavigationService';
-import { showMessage } from '../helpers/utils';
+import { showMessageDialog } from '../helpers/utils';
 import AuthHelper from '../helpers/AuthHelper';
 import ApiHelper from '../helpers/ApiHelper';
 import { logger } from '../helpers/Logger';
@@ -17,7 +17,6 @@ const AppContextProvider = props => {
 
   const loginUser = options => {
     const { id } = options;
-    console.log(options);
     if (options.twoFACode) {
       options.uuid = Expo.Constants.installationId;
     }
@@ -39,10 +38,10 @@ const AppContextProvider = props => {
           message = res.message;
         }
       })
-      .catch(err => showMessage(`ERROR ${err}`))
+      .catch(err => showMessageDialog(`ERROR ${err}`))
       .finally(() => {
         dispatch({ type: 'FORM_SUBMITTED', value: false });
-        showMessage(message, msgType);
+        showMessageDialog(message, msgType);
       });
   };
 
@@ -62,10 +61,10 @@ const AppContextProvider = props => {
           message = res.message;
         }
       })
-      .catch(err => { message = `ERROR ${err}` })
+      .catch(err => { message = `ERROR ${err}`; })
       .finally(() => {
         dispatch({ type: 'FORM_SUBMITTED', value: false });
-        showMessage(message, msgType);
+        showMessageDialog(message, msgType);
       });
   };
 
@@ -86,9 +85,9 @@ const AppContextProvider = props => {
           message = res.message;
         }
       })
-      .catch(err => { message = `ERROR ${err}` })
+      .catch(err => { message = `ERROR ${err}`; })
       .finally(() => {
-        showMessage(message, msgType);
+        showMessageDialog(message, msgType);
       });
   };
 
@@ -110,7 +109,7 @@ const AppContextProvider = props => {
       .catch(err => { message = `ERROR ${err}` })
       .finally(() => {
         dispatch({ type: 'FORM_SUBMITTED', value: false });
-        showMessage(message, msgType);
+        showMessageDialog(message, msgType);
       });
   };
 
@@ -128,10 +127,46 @@ const AppContextProvider = props => {
     let message;
     let msgType;
     Api.getUser()
-      .then(res => dispatch({ type: 'USER_LOADED', user: res.message }))
+      .then(res => { dispatch({ type: 'USER_LOADED', user: res.message }); })
       .catch(err => { message = `ERROR ${err}` })
       .finally(() => {
-        showMessage(message, msgType);
+        showMessageDialog(message, msgType);
+      });
+  };
+
+  const getMessages = () => {
+    logger.log('GETTING MESSAGES...');
+    let message;
+    let msgType;
+    Api.getMessages()
+      .then(res => { dispatch({ type: 'MESSAGES_LOADED', messages: res.message }); })
+      .catch(err => { message = `ERROR ${err}` })
+      .finally(() => {
+        showMessageDialog(message, msgType);
+      });
+  };
+
+  const sendMessage = (msg, address, wallet, password) => {
+    logger.log('SENDING MESSAGE...');
+    dispatch({ type: 'FORM_SUBMITTED', value: true });
+    let message;
+    let msgType;
+    Api.sendMessage(msg, address, wallet, null, password)
+      .then(res => {
+        if (res.result === 'success') {
+          dispatch({ type: 'MESSAGE_SENT', res });
+          getWallets();
+          getMessages();
+          NavigationService.goBack(2);
+          message = 'Message was successfully sent to the recipient';
+          msgType = 'info';
+        } else {
+          message = res.message;
+        }
+      })
+      .finally(() => {
+        dispatch({ type: 'FORM_SUBMITTED', value: false });
+        showMessageDialog(message, msgType);
       });
   };
 
@@ -155,7 +190,7 @@ const AppContextProvider = props => {
       .catch(err => { message = `ERROR ${err}` })
       .finally(() => {
         dispatch({ type: 'FORM_SUBMITTED', value: false });
-        showMessage(message, msgType);
+        showMessageDialog(message, msgType);
       });
   };
 
@@ -177,7 +212,7 @@ const AppContextProvider = props => {
       .catch(err => { message = `ERROR ${err}` })
       .finally(() => {
         dispatch({ type: 'FORM_SUBMITTED', value: false });
-        showMessage(message, msgType);
+        showMessageDialog(message, msgType);
       });
   };
 
@@ -196,7 +231,7 @@ const AppContextProvider = props => {
       })
       .catch(err => { message = `ERROR ${err}` })
       .finally(() => {
-        showMessage(message, msgType);
+        showMessageDialog(message, msgType);
       });
   };
 
@@ -220,7 +255,7 @@ const AppContextProvider = props => {
       .catch(err => { message = `ERROR ${err}` })
       .finally(() => {
         dispatch({ type: 'FORM_SUBMITTED', value: false });
-        showMessage(message, msgType);
+        showMessageDialog(message, msgType);
       });
   };
 
@@ -244,7 +279,7 @@ const AppContextProvider = props => {
       .catch(err => { message = `ERROR ${err}` })
       .finally(() => {
         dispatch({ type: 'FORM_SUBMITTED', value: false });
-        showMessage(message, msgType);
+        showMessageDialog(message, msgType);
       });
   };
 
@@ -284,7 +319,7 @@ const AppContextProvider = props => {
       .finally(() => {
         dispatch({ type: 'WALLETS_LOADED' });
         dispatch({ type: 'APP_UPDATED' });
-        showMessage(message, msgType);
+        showMessageDialog(message, msgType);
       });
   };
 
@@ -309,7 +344,7 @@ const AppContextProvider = props => {
         .catch(err => { message = `ERROR ${err}` })
         .finally(() => {
           dispatch({ type: 'FORM_SUBMITTED', value: false });
-          showMessage(message);
+          showMessageDialog(message);
         });
     }
   };
@@ -343,7 +378,7 @@ const AppContextProvider = props => {
       .finally(() => {
         getWallets();
         dispatch({ type: 'FORM_SUBMITTED', value: false });
-        showMessage(message, msgType);
+        showMessageDialog(message, msgType);
       });
   };
 
@@ -372,7 +407,7 @@ const AppContextProvider = props => {
       .finally(() => {
         getWallets();
         dispatch({ type: 'FORM_SUBMITTED', value: false });
-        showMessage(message, msgType);
+        showMessageDialog(message, msgType);
       });
   };
 
@@ -413,7 +448,7 @@ const AppContextProvider = props => {
         if (res.result === 'success') {
           dispatch({ type: 'PAYMENT_SENT', res });
           getWallets();
-          NavigationService.navigate('Wallet');
+          NavigationService.goBack(2);
           message = 'Payment was successfully sent to the recipient';
           msgType = 'info';
         } else {
@@ -422,7 +457,7 @@ const AppContextProvider = props => {
       })
       .finally(() => {
         dispatch({ type: 'FORM_SUBMITTED', value: false });
-        showMessage(message, msgType);
+        showMessageDialog(message, msgType);
       });
   };
 
@@ -443,6 +478,7 @@ const AppContextProvider = props => {
     check2FA,
     update2FA,
     sendPayment,
+    sendMessage,
     createWallet,
     getWallets,
     switchWallet,
@@ -453,16 +489,15 @@ const AppContextProvider = props => {
   };
 
   useEffect(() => {
-    Auth.loggedIn()
-      .then(loggedIn => {
-        if (loggedIn) {
-          if (!state.user.loggedIn) dispatch({ type: 'USER_LOGGED_IN' });
-          Auth.getToken()
-            .then(token => {
-              dispatch({ type: 'SET_TOKEN', token });
-            });
-        }
-      });
+    if (Auth.loggedIn()) {
+      if (!state.user.loggedIn) {
+        dispatch({ type: 'USER_LOGGED_IN' });
+      }
+
+      let token = Auth.getToken();
+      // dispatch the Aauthentication token
+      dispatch({ type: 'SET_TOKEN', token });
+    }
   }, [state.user.loggedIn]);
 
   useEffect(() => {
@@ -470,6 +505,7 @@ const AppContextProvider = props => {
       getUser();
       check2FA();
       getWallets();
+      getMessages();
       getBlockchainHeight();
       getMarketPrices();
       getPrices();
@@ -481,6 +517,7 @@ const AppContextProvider = props => {
     if (user.loggedIn && intervals.length === 0) {
       const appIntervals = [
         { fn: getWallets, time: userSettings.updateWalletsInterval },
+        { fn: getMessages, time: userSettings.updateMessagesInterval },
         { fn: getBlockchainHeight, time: appSettings.updateBlockchainHeightInterval },
         { fn: getMarketPrices, time: appSettings.updateMarketPricesInterval },
         { fn: getPrices, time: appSettings.updateMarketPricesInterval },
